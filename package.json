@@ -1,0 +1,27 @@
+{
+  "name": "kcsb-api",
+  "version": "1.0.0",
+  "description": "api for db (sql-server)",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "api",
+    "sqlserver",
+    "kcsb"
+  ],
+  "author": "sheik hazrin",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "mssql": "^9.1.1",
+    "nodemon": "^3.0.1",
+    "pusher": "^5.1.3",
+    "supervisor": "^0.12.0"
+  }
+}
