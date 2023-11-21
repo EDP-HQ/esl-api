@@ -1,6 +1,6 @@
 const kcvldbConfig = {
-    user: "kcvl",
-    password: "Kisw@2022",
+    user: "sa",
+    password: "SEAHQAdm!n2019",
     server: "192.168.41.22",
     database: "SEAHQDB",
     options: {
