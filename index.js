@@ -6,7 +6,7 @@ const database = require("./database");
 
 const sPort = 3200;
 let sDB = "<";
-
+let cCurrentDate = "";
 //Initilize app with express web framework
 var app = _expressPackage();
 //To parse result in json format
@@ -62,8 +62,10 @@ function getMRSd13(req, res) {
 // }
 app.get("/d14", function (_req, _res) {
   // Collection of parameter.
+  const d14date = new Date();
+  const fd14date  = d14date.toLocaleString('en-US',{weekday:'short',year:'numeric',month:'short',day:'numeric',hour:'numeric',minute:'numeric',second:'numeric',hour12: true})
   var code = _req.query.code;
-  console.log("d14" + code)
+  console.log(fd14date + " : " + code)
 
   const parameters = [{ name: "v_MCCode", value: code }];
 
@@ -77,8 +79,10 @@ app.get("/d14", function (_req, _res) {
 
 app.get("/d15", function (_req, _res) {
   // Collection of parameter.
+  const d15date = new Date();
+  const fd15date  = d15date.toLocaleString('en-US',{weekday:'short',year:'numeric',month:'short',day:'numeric',hour:'numeric',minute:'numeric',second:'numeric',hour12: true})
   var code = _req.query.code;
-  console.log("d15" + code)
+  console.log(fd15date +" : " + code)
 
   const parameters = [{ name: "v_MCCode", value: code }];
 
@@ -92,8 +96,10 @@ app.get("/d15", function (_req, _res) {
 
 app.get("/d16", function (_req, _res) {
   // Collection of parameter.
+  const d16date = new Date();
+  const fd16date  = d16date.toLocaleString('en-US',{weekday:'short',year:'numeric',month:'short',day:'numeric',hour:'numeric',minute:'numeric',second:'numeric',hour12: true})
   var code = _req.query.code;
-  console.log("d16" + code)
+  console.log(fd16date + " : " + code)
 
   const parameters = [{ name: "v_MCCode", value: code }];
 
