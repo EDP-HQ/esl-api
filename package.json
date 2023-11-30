@@ -1,5 +1,5 @@
 {
-  "name": "kcsb-api",
+  "name": "kcvl-api",
   "version": "1.0.0",
   "description": "api for db (sql-server)",
   "main": "index.js",
@@ -11,7 +11,7 @@
   "keywords": [
     "api",
     "sqlserver",
-    "kcsb"
+    "kcvl"
   ],
   "author": "sheik hazrin",
   "license": "ISC",
