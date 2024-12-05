@@ -1,8 +1,8 @@
 const dbConfig = {
     user: "sa",
-    password: "KisWire2007",
-    server: "194.1.32.3",
-    database: "kcsbsalesdb",
+    password: "KisWire2019",
+    server: "194.1.30.2",
+    database: "esltagdb",
     options: {
       encrypt: false,
       trustServerCertificate: true,
