@@ -4,7 +4,13 @@ const path = require('path');
 
 // Replace these with your actual file paths if needed
 const esldbConfig = require("./esldbconfig");
+const swrdbconfig = require("./swrdbconfig");
 const database = require("./database");
+
+const multer = require('multer');
+const fs = require('fs');
+
+const directoryPath = path.join(__dirname, '../esl-app/public/upload');
 
 // Configuration variables from the file you provided
 const sPort = 3222; // Port for the Express server
@@ -92,6 +98,161 @@ app.get("/", wIntro);
 function wIntro(req, res) {
   res.send("🚀 Kiswire ESLTag API now running on port " + sPort);
 }
+
+// *****  Set storage engine ***** 
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    // cb(null, 'public/uploads'); // Specify the destination folder
+    cb(null, directoryPath); // Specify the destination folder
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const ext = path.extname(file.originalname);
+    //cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+    cb(null, file.originalname);
+  },
+});
+
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype === 'image/png') {
+    cb(null, true);
+  } else {
+    cb(new Error('Only PNG files are allowed'), false);
+  }
+};
+
+// *****  const upload = multer({ storage: storage });
+const upload = multer({ storage: storage, fileFilter: fileFilter }); //filter for png only
+
+app.post('/upload/png', upload.single('file'), function (req, res) {
+  console.log(new Date() + ' -> /upload/png', req.file.originalname);
+
+  // Check for multer upload errors
+  if (req.fileValidationError) {
+    console.error('File validation error:', req.fileValidationError);
+    return res.status(400).json({ error: 'File validation error' });
+  }
+
+  // Check if a file was provided
+  if (!req.file) {
+    console.error('No file provided');
+    return res.status(400).json({ error: 'No file provided' });
+  }
+  // Log successful file upload
+  console.log('File uploaded:', req.file.filename);
+  return res.status(200).json({ message: 'File uploaded successfully', uploadfile: req.file.filename });
+});
+
+app.get("/", wIntro);
+
+app.get("/esl/opensearch", function (req, res) {
+  console.log(new Date() + ' -> /esl/opensearch')
+  try {
+    // console.log ('-> /esl/opensearch')
+    const parameters = [
+    ];
+
+    console.log('parameters', parameters)
+    const storedProcedure = "UPS_ASYNC_ESLTAG_OPEN"
+    database.executeStoredProcedure(
+      res,
+      swrdbconfig,
+      storedProcedure,
+      parameters
+    );
+  } catch (error) {
+    console.error("Error processing the request:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.get("/esl/inventorysearch", function (req, res) {
+  console.log(new Date() + ' -> /esl/inventorysearch')
+  try {
+    // console.log ('-> /esl/opensearch')
+    const parameters = [
+      { name: "SBIN_LOCATION", value: req.query.SBIN_LOCATION}
+    ];
+
+    console.log('parameters', parameters)
+    const storedProcedure = "UPS_ASYNC_ESLTAG_OPEN_INVENTORY"
+    database.executeStoredProcedure(
+      res,
+      swrdbconfig,
+      storedProcedure,
+      parameters
+    );
+  } catch (error) {
+    console.error("Error processing the request:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
+app.get("/esl/d1binsearch_ini", function (req, res) {
+  console.log(new Date() + ' -> /esl/d1binsearch_ini')
+  try {
+    // console.log ('-> /esl/binsearch')
+    const parameters = [
+    ];
+
+    console.log('parameters', parameters)
+    const storedProcedure = "UPS_ASYNC_ESLTAG_D1TYPE_INI"
+    database.executeStoredProcedure(
+      res,
+      swrdbconfig,
+      storedProcedure,
+      parameters
+    );
+  } catch (error) {
+    console.error("Error processing the request:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.get("/esl/d1binsearch_open", function (req, res) {
+  console.log(new Date() + ' -> /esl/d1binsearch_open')
+  try {
+    // console.log ('-> /esl/binsearch')
+    const parameters = [
+    ];
+
+    console.log('parameters', parameters)
+    const storedProcedure = "UPS_ASYNC_ESLTAG_D1TYPE_OPEN"
+    database.executeStoredProcedure(
+      res,
+      swrdbconfig,
+      storedProcedure,
+      parameters
+    );
+  } catch (error) {
+    console.error("Error processing the request:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.get("/esl/d1search", function (req, res) {
+  console.log(new Date() + ' -> /esl/d1search')
+  try {
+    // console.log ('-> /esl/d1search')
+    const parameters = [
+      { name: "SDATE", value: req.query.SDATE },
+      { name: "SBIN_LOCATION", value: req.query.SBIN_LOCATION}
+    ];
+
+    console.log('parameters', parameters)
+    const storedProcedure = "UPS_ASYNC_ESLTAG_D1TYPE"
+    database.executeStoredProcedure(
+      res,
+      swrdbconfig,
+      storedProcedure,
+      parameters
+    );
+  } catch (error) {
+    console.error("Error processing the request:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 
 // Route for /user
 app.get("/user", function (req, res) {
