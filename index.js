@@ -7,7 +7,7 @@ const esldbConfig = require("./esldbconfig");
 const swrdbconfig = require("./swrdbconfig");
 const database = require("./database");
 
-const multer = require('multer');
+const multer = require('multer');  //저장소 관련
 const fs = require('fs');
 
 const directoryPath = path.join(__dirname, '../esl-app/public/upload');
@@ -231,6 +231,29 @@ app.get("/esl/d1binsearch_open", function (req, res) {
   }
 });
 
+app.get("/esl/d1binsearch_close", function (req, res) {
+  console.log(new Date() + ' -> /esl/d1binsearch_close')
+  try {
+    // console.log ('-> /esl/d1search')
+    const parameters = [
+      { name: "SBIN_LOCATION", value: req.query.SBIN_LOCATION },
+      { name: "SESL_TAG_ID", value: req.query.SESL_TAG_ID}
+    ];
+
+    console.log('parameters', parameters)
+    const storedProcedure = "UPS_ASYNC_ESLTAG_BINLOCATION_CLOSE"
+    database.executeStoredProcedure(
+      res,
+      swrdbconfig,
+      storedProcedure,
+      parameters
+    );
+  } catch (error) {
+    console.error("Error processing the request:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 app.get("/esl/d1search", function (req, res) {
   console.log(new Date() + ' -> /esl/d1search')
   try {
@@ -297,4 +320,142 @@ app.post("/execute-sdk", function (req, res) {
           res.send({ success: true, result: result });
       }
   });
+});
+
+// Rack Monitoring Dashboard API Endpoints
+app.get("/rack/dashboard/overview", function (req, res) {
+  console.log(new Date() + ' -> /rack/dashboard/overview')
+  try {
+    const parameters = [];
+    console.log('parameters', parameters)
+    const storedProcedure = "USP_SFC_KBAS090_PRINT_R10_M"
+    database.executeStoredProcedure(
+      res,
+      swrdbconfig,
+      storedProcedure,
+      parameters
+    );
+  } catch (error) {
+    console.error("Error processing the request:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.get("/rack/types/summary", function (req, res) {
+  console.log(new Date() + ' -> /rack/types/summary')
+  try {
+    const parameters = [];
+    console.log('parameters', parameters)
+    const storedProcedure = "USP_SFC_KBAS090_PRINT_R10_M"
+    database.executeStoredProcedure(
+      res,
+      swrdbconfig,
+      storedProcedure,
+      parameters
+    );
+  } catch (error) {
+    console.error("Error processing the request:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.get("/rack/monitoring/realtime", function (req, res) {
+  console.log(new Date() + ' -> /rack/monitoring/realtime')
+  try {
+    const parameters = [];
+    console.log('parameters', parameters)
+    const storedProcedure = "USP_SFC_KBAS090_PRINT_R10_M"
+    database.executeStoredProcedure(
+      res,
+      swrdbconfig,
+      storedProcedure,
+      parameters
+    );
+  } catch (error) {
+    console.error("Error processing the request:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.get("/rack/alerts/warnings", function (req, res) {
+  console.log(new Date() + ' -> /rack/alerts/warnings')
+  try {
+    const parameters = [];
+    console.log('parameters', parameters)
+    const storedProcedure = "USP_SFC_KBAS090_PRINT_R10_M"
+    database.executeStoredProcedure(
+      res,
+      swrdbconfig,
+      storedProcedure,
+      parameters
+    );
+  } catch (error) {
+    console.error("Error processing the request:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// Rack Detail API Endpoint
+app.get("/rack/detail/:rackId", function (req, res) {
+  console.log(new Date() + ' -> /rack/detail/' + req.params.rackId)
+  try {
+    const rackId = req.params.rackId;
+    // 고정 파라미터: 회사='KSB', 공장='F002', 공정='DW'
+    const parameters = [
+      { name: "COMPANY", value: 'KSB' },
+      { name: "FACTORY", value: 'F002' },
+      { name: "PROCESS_ID", value: 'DW' },
+      { name: "MATERIAL_CD", value: '' },
+      { name: "BIN_LOCATION_CD", value: rackId }
+    ];
+    console.log('parameters', parameters)
+    const storedProcedure = "USP_SFC_KSTK010_R60_M"
+    database.executeStoredProcedure(
+      res,
+      swrdbconfig,
+      storedProcedure,
+      parameters
+    );
+  } catch (error) {
+    console.error("Error processing the request:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// 비정상 데이터 API Endpoint
+app.get("/rack/abnormal/data", function (req, res) {
+  console.log(new Date() + ' -> /rack/abnormal/data')
+  try {
+    const parameters = [];
+    console.log('parameters', parameters)
+    const storedProcedure = "USP_SFC_KBAS090_PRINT_R10_M_ABNORMAL"
+    database.executeStoredProcedure(
+      res,
+      swrdbconfig,
+      storedProcedure,
+      parameters
+    );
+  } catch (error) {
+    console.error("Error processing the request:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// 상세 랙 모니터링 데이터 API Endpoint
+app.get("/rack/monitoring/detail", function (req, res) {
+  console.log(new Date() + ' -> /rack/monitoring/detail')
+  try {
+    const parameters = [];
+    console.log('parameters', parameters)
+    const storedProcedure = "USP_SFC_KBAS090_PRINT_R10_M_DETAIL"
+    database.executeStoredProcedure(
+      res,
+      swrdbconfig,
+      storedProcedure,
+      parameters
+    );
+  } catch (error) {
+    console.error("Error processing the request:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
