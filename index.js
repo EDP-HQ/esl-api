@@ -34,10 +34,27 @@ app.use(function (req, res, next) {
   next();
 });
 
+// Request logging middleware - Log all incoming requests
+app.use(function (req, res, next) {
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] ${req.method} ${req.originalUrl || req.url}`);
+  if (Object.keys(req.query).length > 0) {
+    console.log(`[${timestamp}] Query params:`, req.query);
+  }
+  if (Object.keys(req.body).length > 0) {
+    console.log(`[${timestamp}] Body:`, req.body);
+  }
+  next();
+});
+
 // Start the Express server
 var server = app.listen(process.env.PORT || sPort, function () {
   var port = server.address().port;
-  console.log("App now running on port", port);
+  console.log("========================================");
+  console.log(`🚀 ESL API Server started successfully!`);
+  console.log(`📡 Server running on port ${port}`);
+  console.log(`🌐 Access at: http://localhost:${port}`);
+  console.log("========================================");
 });
 
 // Define a function to handle the common logic for stored procedures
@@ -146,14 +163,16 @@ app.post('/upload/png', upload.single('file'), function (req, res) {
 app.get("/", wIntro);
 
 app.get("/esl/opensearch", function (req, res) {
-  console.log(new Date() + ' -> /esl/opensearch')
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] GET /esl/opensearch`);
+  
   try {
-    // console.log ('-> /esl/opensearch')
-    const parameters = [
-    ];
+    const parameters = [];
 
-    console.log('parameters', parameters)
     const storedProcedure = "UPS_ASYNC_ESLTAG_OPEN"
+    console.log(`[${timestamp}] Executing stored procedure: ${storedProcedure}`);
+    console.log(`[${timestamp}] Parameters:`, JSON.stringify(parameters, null, 2));
+    
     database.executeStoredProcedure(
       res,
       swrdbconfig,
@@ -161,21 +180,31 @@ app.get("/esl/opensearch", function (req, res) {
       parameters
     );
   } catch (error) {
-    console.error("Error processing the request:", error);
+    console.error(`[${timestamp}] Error processing /esl/opensearch:`, error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
 app.get("/esl/inventorysearch", function (req, res) {
-  console.log(new Date() + ' -> /esl/inventorysearch')
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] GET /esl/inventorysearch`);
+  console.log('Query parameters:', {
+    SBIN_LOCATION: req.query.SBIN_LOCATION || null,
+    SCOMPANY: req.query.SCOMPANY || null,
+    SFACTORY: req.query.SFACTORY || null
+  });
+  
   try {
-    // console.log ('-> /esl/opensearch')
     const parameters = [
-      { name: "SBIN_LOCATION", value: req.query.SBIN_LOCATION}
+      { name: "SBIN_LOCATION", value: req.query.SBIN_LOCATION || null},
+      { name: "SCOMPANY", value: req.query.SCOMPANY || null},
+      { name: "SFACTORY", value: req.query.SFACTORY || null}
     ];
 
-    console.log('parameters', parameters)
     const storedProcedure = "UPS_ASYNC_ESLTAG_OPEN_INVENTORY"
+    console.log(`[${timestamp}] Executing stored procedure: ${storedProcedure}`);
+    console.log(`[${timestamp}] Parameters:`, JSON.stringify(parameters, null, 2));
+    
     database.executeStoredProcedure(
       res,
       swrdbconfig,
@@ -183,7 +212,7 @@ app.get("/esl/inventorysearch", function (req, res) {
       parameters
     );
   } catch (error) {
-    console.error("Error processing the request:", error);
+    console.error(`[${timestamp}] Error processing /esl/inventorysearch:`, error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
