@@ -10,20 +10,21 @@ const database = require("./database");
 const multer = require('multer');  //저장소 관련
 const fs = require('fs');
 
-const directoryPath = path.join(__dirname, '../esl-app/public/upload');
+// Upload dir inside API project (works on any deployment)
+const directoryPath = path.join(__dirname, 'upload');
+try {
+  fs.mkdirSync(directoryPath, { recursive: true });
+} catch (e) {
+  console.error('Could not create upload directory:', directoryPath, e.message);
+}
 
 // Configuration variables from the file you provided
 const sPort = 3222; // Port for the Express server
 
 // Initialize app with Express
 const app = express();
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-// To parse result in JSON format
-app.use(express.json());
-
-// Enable CORS
+// Enable CORS first
 app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
@@ -34,18 +35,80 @@ app.use(function (req, res, next) {
   next();
 });
 
-// Request logging middleware - Log all incoming requests
+// ---- PNG upload route MUST run before body parsers (so multipart body is not consumed) ----
+// Multer config and /upload/png are registered below, right after this block.
+
+// Request logging (skip body for multipart to avoid consuming stream)
 app.use(function (req, res, next) {
   const timestamp = new Date().toISOString();
   console.log(`[${timestamp}] ${req.method} ${req.originalUrl || req.url}`);
+  const isMultipart = (req.headers['content-type'] || '').includes('multipart/form-data');
+  if (!isMultipart && req.body && Object.keys(req.body).length > 0) {
+    console.log(`[${timestamp}] Body:`, req.body);
+  }
   if (Object.keys(req.query).length > 0) {
     console.log(`[${timestamp}] Query params:`, req.query);
   }
-  if (Object.keys(req.body).length > 0) {
-    console.log(`[${timestamp}] Body:`, req.body);
-  }
   next();
 });
+
+// Multer + PNG upload route MUST be before body parsers (multipart body must not be consumed)
+function ensureUploadDir(dir, cb) {
+  try {
+    fs.mkdirSync(dir, { recursive: true });
+    cb(null);
+  } catch (e) {
+    cb(e);
+  }
+}
+const uploadStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    ensureUploadDir(directoryPath, (err) => {
+      if (err) return cb(err);
+      cb(null, directoryPath);
+    });
+  },
+  filename: (req, file, cb) => {
+    const name = file.originalname || 'image.png';
+    const ext = path.extname(name) || '.png';
+    const base = path.basename(name, ext) || 'image';
+    cb(null, base + ext);
+  },
+});
+const uploadFileFilter = (req, file, cb) => {
+  try {
+    const name = (file && file.originalname) ? file.originalname : '';
+    const ext = path.extname(name).toLowerCase();
+    const mime = (file && file.mimetype) ? file.mimetype : '';
+    if (mime === 'image/png') return cb(null, true);
+    if (ext === '.png' && (mime === '' || mime === 'application/octet-stream')) return cb(null, true);
+    cb(new Error('Only PNG files are allowed'), false);
+  } catch (e) {
+    cb(e, false);
+  }
+};
+const upload = multer({ storage: uploadStorage, fileFilter: uploadFileFilter });
+app.post('/upload/png', function (req, res) {
+  upload.single('file')(req, res, function (err) {
+    if (err) {
+      console.error('/upload/png error:', err.message);
+      return res.status(400).json({ error: err.message || 'Upload failed' });
+    }
+    if (!req.file) {
+      console.error('No file parsed — field name "file", multipart with boundary required');
+      return res.status(400).json({ error: 'No file provided' });
+    }
+    console.log(new Date() + ' -> /upload/png', req.file.originalname);
+    return res.status(200).json({
+      message: 'File uploaded successfully',
+      uploadfile: req.file.filename,
+    });
+  });
+});
+
+// Body parsers for JSON (other routes)
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Start the Express server
 var server = app.listen(process.env.PORT || sPort, function () {
@@ -115,50 +178,6 @@ app.get("/", wIntro);
 function wIntro(req, res) {
   res.send("🚀 Kiswire ESLTag API now running on port " + sPort);
 }
-
-// *****  Set storage engine ***** 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    // cb(null, 'public/uploads'); // Specify the destination folder
-    cb(null, directoryPath); // Specify the destination folder
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    //cb(null, file.fieldname + '-' + uniqueSuffix + ext);
-    cb(null, file.originalname);
-  },
-});
-
-const fileFilter = (req, file, cb) => {
-  if (file.mimetype === 'image/png') {
-    cb(null, true);
-  } else {
-    cb(new Error('Only PNG files are allowed'), false);
-  }
-};
-
-// *****  const upload = multer({ storage: storage });
-const upload = multer({ storage: storage, fileFilter: fileFilter }); //filter for png only
-
-app.post('/upload/png', upload.single('file'), function (req, res) {
-  console.log(new Date() + ' -> /upload/png', req.file.originalname);
-
-  // Check for multer upload errors
-  if (req.fileValidationError) {
-    console.error('File validation error:', req.fileValidationError);
-    return res.status(400).json({ error: 'File validation error' });
-  }
-
-  // Check if a file was provided
-  if (!req.file) {
-    console.error('No file provided');
-    return res.status(400).json({ error: 'No file provided' });
-  }
-  // Log successful file upload
-  console.log('File uploaded:', req.file.filename);
-  return res.status(200).json({ message: 'File uploaded successfully', uploadfile: req.file.filename });
-});
 
 app.get("/", wIntro);
 
